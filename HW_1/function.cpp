@@ -3,7 +3,7 @@
 #include <cstring>
 #include "function.h"
 #define STACKSIZE 1000
-#define QUEUESIZE 1000
+#define QUEUESIZE 1000001
 using namespace std;
 
 const string SG = "shotgun shells";
@@ -177,6 +177,9 @@ void ShootNormal(int col, int W) {
 
     int type = stage[col].top();
     stage[col].pop();
+
+    while (!stage[col].empty() && stage[col].top() == 0)
+        stage[col].pop();
     
     switch (type) {
         case 2:
@@ -195,8 +198,7 @@ void ShootNormal(int col, int W) {
             break;
     }
     
-    while (!stage[col].empty() && stage[col].top() == 0)
-        stage[col].pop();
+    
 }
 
 void ShootSpecial(int col, int W) {
