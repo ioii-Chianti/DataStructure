@@ -2,7 +2,7 @@
 #include <string>
 #include <algorithm>
 #include "function.h"
-#define SIZE 100
+#define SIZE 100005
 using namespace std;
 
 const string SG = "shotgun shells";
@@ -13,9 +13,9 @@ const string SB = "super bullets";
 
 template <class T>
 BaseStack<T>::BaseStack() {
-    _stack = new T[500];
+    _stack = new T[SIZE];
     _top = -1;
-    _capacity = 500;
+    _capacity = SIZE;
 }
 
 template<class T>
@@ -113,8 +113,10 @@ void BaseQueue<T>::pop() {
 
 BaseStack<int> *stage;
 BaseQueue<string> special;
+int numCol;
 
 void InitialzeStage(int W, int H) {
+    numCol = W;
     stage = new BaseStack<int>[W];
 
     char input;
@@ -158,7 +160,7 @@ void generateEnemies(int col, int W) {
 }
 
 void ShootNormal(int col, int W) {
-    if (col >= W || stage[col].empty())
+    if (col >= W && col < 0 || stage[col].empty())
         return;
 
     while (!stage[col].empty() && stage[col].top() == 0)
@@ -189,7 +191,7 @@ void ShootNormal(int col, int W) {
 }
 
 void ShootSpecial(int col, int W) {
-    if (special.empty())
+    if (col >= W && col < 0 && special.empty())
         return;
     string bullet = special.front();
     
@@ -207,7 +209,6 @@ void ShootSpecial(int col, int W) {
     } else if (bullet == SB) {
         int type = stage[col].top();
         while (!stage[col].empty() && stage[col].top() == type) {
-            // cout << " --- top: " << stage[col].top() << '\n';
             ShootNormal(col, W);
         }
     }
@@ -234,27 +235,26 @@ void ShowResult(int W) {
 
     BaseStack<int> *revStage = new BaseStack<int>[W];
     int maxLevel = findMaxLevel(0, W - 1);
-    for (int i = 0; i < W; i++) {
-        while (!stage[i].empty()) {
-            revStage[i].push(stage[i].top());
-            stage[i].pop();
-            
-        }
-    }
-
-    for (int level = 1; level <= maxLevel; level++) {
+    if (maxLevel) {
         for (int i = 0; i < W; i++) {
-            char ch = (!revStage[i].empty() && revStage[i].top()) ? revStage[i].top() + '0' : '_';
-            revStage[i].pop();
-            cout << ch;
-            if (i != W - 1) cout << ' ';
+            while (!stage[i].empty()) {
+                revStage[i].push(stage[i].top());
+                stage[i].pop();
+            }
         }
-        cout << '\n';
+
+        for (int level = 1; level <= maxLevel; level++) {
+            for (int i = 0; i < W; i++) {
+                char ch = (!revStage[i].empty() && revStage[i].top()) ? revStage[i].top() + '0' : '_';
+                revStage[i].pop();
+                cout << ch;
+                if (i != W - 1) cout << ' ';
+            }
+            cout << '\n';
+        }
     }
 }
 
 void deleteStage() {
-    // delete[] stage;
-    // special.~BaseQueue();
-    // cout << "---- delete\n";
+    delete[] stage;
 }
