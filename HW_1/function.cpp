@@ -102,33 +102,26 @@ void BaseQueue<T>::pop() {
 
 /* Core Functions */
 
-int **stage;
+BaseStack<int> *stage;
+BaseQueue<string> special;
 int *level, maxLevel;
 int numCol, numRow;
-int *zeros;
-BaseQueue<string> special;
+
 
 void InitialzeStage(int W, int H) {
-    stage = new int *[SIZE];
-    for (int i = 0; i < SIZE; i++)
-        stage[i] = new int[W]();
-    numCol = W, numRow = H;
+    stage = new BaseStack<int>[W];
 
     level = new int[W]();
     maxLevel = 0;
 
-    zeros = new int[W]();
-
     char input;
-    for (int r = 0; r < H; r++) {
-        for (int c = 0; c < W; c++) {
+    for (int row = 0; row < H; row++) {
+        for (int col = 0; col < W; col++) {
             cin >> input;
             if ('0' < input && input <= '5') {
-                stage[r][c] = input - '0';
-                level[c]++;
-                maxLevel = max(level[c], maxLevel);
+                stage[col].push(input - '0');
             } else if (input == '_') {
-                stage[r][c] = 0;
+                stage[col].push(0);
             }
         }
     }
@@ -138,37 +131,13 @@ void InitialzeStage(int W, int H) {
 void generateEnemies(int col) {
     int leftBound = col - 2 >= 0 ? col - 2 : 0;
     int rightBound = col + 2 < numCol ? col + 2 : numCol - 1;
-    for (int i = maxLevel; i <= maxLevel + 2; i++)
-        for (int j = leftBound; j <= rightBound; j++)
-            stage[i][j] = 1;
-    maxLevel += 3;
+    cout << "--- genetare\n";
 }
 
 void ShootNormal(int col, int W) {
-    // 只有 col == 0 會錯誤
-    if (col >= W || col < 0)
+    if (col >= W)
         return;
-    for (int i = maxLevel - 1; i >= 0; i--) {
-        if (stage[i][col] == 0)
-            continue;
-        else {
-            switch (stage[i][col]) {
-                case 1: break;
-                case 2: special.push(SG); break;
-                case 3: special.push(P); break;
-                case 4: special.push(SB); break;
-                case 5: generateEnemies(col); break;
-            }
-            
-            stage[i][col] = 0;
-            level[col]--;
-            // int hasEnemy = memcmp(stage[i], zeros, W);
-            // cout << "--- hasEne in " << i << "? " << hasEnemy << " \n";
-            // if (!hasEnemy) maxLevel--;
-            break;
-        }
-    }
-    ShowResult(numCol);
+    stage[col].pop();
 }
 
 void ShootSpecial(int col, int W) {
@@ -181,13 +150,19 @@ void FrontRow(int W) {
 
 void ShowResult(int W) {
     cout << "END_RESULT:\n";
-    cout << numCol << ' ' << numRow << '\n';
-    for (int i = 0; i <= maxLevel; i++) {
-        for (int j = 0; j < numCol; j++) {
-            int hasEnemy = memcmp(stage[i], zeros, W);
-            if (!hasEnemy)
-                return;
-            char ch = stage[i][j] ? stage[i][j] + '0' : '_';
+    BaseStack<int> *revStage = new BaseStack<int>[W];
+    for (int i = 0; i < W; i++) {
+        while (!stage[i].empty()) {
+            revStage[i].push(stage[i].top());
+            stage[i].pop();
+            
+        }
+    }
+
+    for (int level = 1; level <= 5; level++) {
+        for (int i = 0; i < W; i++) {
+            char ch = (!revStage[i].empty() && revStage[i].top()) ? revStage[i].top() + '0' : '_';
+            revStage[i].pop();
             cout << ch << ' ';
         }
         cout << '\n';
@@ -195,7 +170,6 @@ void ShowResult(int W) {
 }
 
 void deleteStage() {
-    for (int i = 0; i < numCol; i++)
-        delete[] stage[i];
     delete[] stage;
+    special.~BaseQueue();
 }
