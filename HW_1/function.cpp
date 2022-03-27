@@ -31,7 +31,7 @@ bool BaseStack<T>::empty() {
 
 template <class T>
 int BaseStack<T>::size() {
-    return (_top + 1);
+    return _top + 1;
 }
 
 template <class T>
@@ -42,6 +42,7 @@ T& BaseStack<T>::top() {
 
 template <class T>
 void BaseStack<T>::push(const T& item) {
+    // double size
     if (size() >= _capacity) {
         int newCapacity = _capacity * 2;
         T *newStack = new T[newCapacity];
@@ -83,8 +84,8 @@ bool BaseQueue<T>::empty() {
 template <class T>
 int BaseQueue<T>::size() {
     if (_rear < _front) {
-        int fix_rear = _rear + _capacity;
-        return fix_rear - _front;
+        int rear = _rear + _capacity;
+        return rear - _front;
     } else
         return _rear - _front;
 }
@@ -119,33 +120,28 @@ template <class T>
 void BaseQueue<T>::pop() {
     if (!empty()) {
         _front = (_front + 1) % _capacity;
-        // _queue[_front].~T();
     }
 }
 
-// -------------------------------------------------------------- //
 /* Core Functions */
 
-BaseStack<int> *stage;
+BaseStack<char> *stage;
 BaseQueue<string> special;
 
 void InitialzeStage(int W, int H) {
-    stage = new BaseStack<int>[W];
+    stage = new BaseStack<char>[W];
 
     char input;
     for (int row = 0; row < H; row++) {
         for (int col = 0; col < W; col++) {
             cin >> input;
-            if ('0' < input && input <= '5')
-                stage[col].push(input - '0');
-            else if (input == '_')
-                stage[col].push(0);
+            stage[col].push(input);
         }
     }
 
     // pop ending zeros
     for (int i = 0; i < W; i++) {
-        while (!stage[i].empty() && stage[i].top() == 0)
+        while (!stage[i].empty() && stage[i].top() == '_')
             stage[i].pop();
     }
 }
@@ -164,10 +160,10 @@ void generateEnemies(int col, int W) {
 
     for (int i = left; i <= right; i++) {
         while (stage[i].size() < maxLevel)
-            stage[i].push(0);
-        stage[i].push(1);
-        stage[i].push(1);
-        stage[i].push(1);
+            stage[i].push('_');
+        stage[i].push('1');
+        stage[i].push('1');
+        stage[i].push('1');
     }
 }
 
@@ -175,35 +171,25 @@ void ShootNormal(int col, int W) {
     if (col >= W || col < 0 || stage[col].empty())
         return;
 
-    int type = stage[col].top();
+    char ch = stage[col].top();
     stage[col].pop();
 
-    while (!stage[col].empty() && stage[col].top() == 0)
+    while (!stage[col].empty() && stage[col].top() == '_')
         stage[col].pop();
     
-    switch (type) {
-        case 2:
-            special.push(SG);
-            break;
-        case 3:
-            special.push(P);
-            break;
-        case 4:
-            special.push(SB);
-            break;
-        case 5:
-            generateEnemies(col, W);
-            break;
-        default:
-            break;
+    switch (ch) {
+        case '2': special.push(SG); break;
+        case '3': special.push(P); break;
+        case '4': special.push(SB); break;
+        case '5': generateEnemies(col, W); break;
+        default: break;
     }
-    
-    
 }
 
 void ShootSpecial(int col, int W) {
-    if (col >= W || col < 0 || special.empty())
+    if (col < 0 || col >= W || special.empty())
         return;
+        
     string bullet = special.front();
     special.pop();
     
@@ -219,10 +205,9 @@ void ShootSpecial(int col, int W) {
             cnt++;
         }
     } else if (bullet == SB) {
-        int type = stage[col].top();
-        while (!stage[col].empty() && stage[col].top() == type) {
+        char type = stage[col].top();
+        while (!stage[col].empty() && stage[col].top() == type)
             ShootNormal(col, W);
-        }
     }
 }
 
@@ -246,17 +231,17 @@ void ShowResult(int W) {
 
     int maxLevel = findMaxLevel(0, W - 1);
     if (maxLevel) {
-        BaseStack<int> *revStage = new BaseStack<int>[W];
+        BaseStack<char> *revStage = new BaseStack<char>[W];
         for (int i = 0; i < W; i++) {
             while (!stage[i].empty()) {
                 revStage[i].push(stage[i].top());
                 stage[i].pop();
             }
         }
-
+        
         for (int level = 1; level <= maxLevel; level++) {
             for (int i = 0; i < W; i++) {
-                char ch = (!revStage[i].empty() && revStage[i].top()) ? revStage[i].top() + '0' : '_';
+                char ch = !revStage[i].empty() ? revStage[i].top() : '_';
                 revStage[i].pop();
                 cout << ch;
                 if (i != W - 1) cout << ' ';
