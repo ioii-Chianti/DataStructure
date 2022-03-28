@@ -2,37 +2,31 @@
 #include <string>
 #include <cstring>
 #include "function.h"
-#define STACKSIZE 1000
-#define QUEUESIZE 1000001
+#define SIZE 1000
+#define DEBUGMODE 0
 using namespace std;
 
-const string SG = "shotgun shells";
-const string P = "penetration bullets";
-const string SB = "super bullets";
+const string SG = "Shotgun shells";
+const string P = "Penetration bullets";
+const string SB = "Super bullets";
 
 /* Stack Implementation */
 
 template <class T>
 BaseStack<T>::BaseStack() {
-    _stack = new T[STACKSIZE];
+    _stack = new T[SIZE];
     _top = -1;
-    _capacity = STACKSIZE;
+    _capacity = SIZE;
 }
 
 template<class T>
-BaseStack<T>::~BaseStack() {
-    delete[] _stack;
-}
+BaseStack<T>::~BaseStack() { delete[] _stack; }
 
 template <class T>
-bool BaseStack<T>::empty() {
-    return _top == -1;
-}
+bool BaseStack<T>::empty() { return _top == -1; }
 
 template <class T>
-int BaseStack<T>::size() {
-    return _top + 1;
-}
+int BaseStack<T>::size() { return _top + 1; }
 
 template <class T>
 T& BaseStack<T>::top() {
@@ -42,9 +36,9 @@ T& BaseStack<T>::top() {
 
 template <class T>
 void BaseStack<T>::push(const T& item) {
-    // double size
+    // resize; changing '*2' into '+1000' doesn't affact
     if (size() >= _capacity) {
-        int newCapacity = _capacity * 2;
+        int newCapacity = _capacity <= 100000 ? _capacity * 2 : _capacity + 1000;
         T *newStack = new T[newCapacity];
         memcpy(newStack, _stack, _capacity * sizeof(T));
         
@@ -62,54 +56,47 @@ void BaseStack<T>::pop() {
 }
 
 
+
 /* Queue Implementation */
 
 template <class T>
 BaseQueue<T>::BaseQueue() {
-    _queue = new T[QUEUESIZE];
+    _queue = new T[SIZE];
     _front = _rear = -1;
-    _capacity = QUEUESIZE;
+    _capacity = SIZE;
 }
 
 template <class T>
-BaseQueue<T>::~BaseQueue() {
-    delete[] _queue;
-}
+BaseQueue<T>::~BaseQueue() { delete[] _queue; }
 
 template <class T>
-bool BaseQueue<T>::empty() {
-    return (size() == 0);
-}
+bool BaseQueue<T>::empty() { return size() == 0; }
 
 template <class T>
 int BaseQueue<T>::size() {
-    if (_rear < _front) {
-        int rear = _rear + _capacity;
-        return rear - _front;
-    } else
-        return _rear - _front;
+    return (_rear < _front) ? (_rear + _capacity - _front) : (_rear - _front);
 }
 
 template <class T>
-T& BaseQueue<T>::front() {
-    return _queue[(_front + 1) % _capacity];
-}
+T& BaseQueue<T>::front() { return _queue[(_front + 1) % _capacity]; }
 
 template <class T>
 void BaseQueue<T>::push(const T& item) {
+    // resize
     if (size() >= _capacity) {
         int newCapacity = _capacity * 2;
         T* newQueue = new T[newCapacity];
         int Size = size(), index = _front + 1;
         for (int i = 0; i < Size; i++) {
-            newQueue[i] = _queue[index++];
-            if (index == _capacity)
-                index = 0;
+            newQueue[i] = _queue[index];
+            index = index == _capacity ? 0 : index + 1;
         }
+
         delete[] _queue;
         _queue = newQueue;
         _capacity = newCapacity;
     }
+
     if ((_rear + 1) % _capacity != _front) {
         _rear = (_rear + 1) % _capacity;
         _queue[_rear] = item;
@@ -118,15 +105,16 @@ void BaseQueue<T>::push(const T& item) {
 
 template <class T>
 void BaseQueue<T>::pop() {
-    if (!empty()) {
+    if (!empty())
         _front = (_front + 1) % _capacity;
-    }
 }
+
+
 
 /* Core Functions */
 
 BaseStack<char> *stage;
-BaseQueue<string> special;
+BaseQueue<string> specials;
 
 void InitialzeStage(int W, int H) {
     stage = new BaseStack<char>[W];
@@ -147,6 +135,8 @@ void InitialzeStage(int W, int H) {
 }
 
 int findMaxLevel(int left, int right) {
+    // find max level within index [left, right]
+    // used by genEnemy and ShowRes
     int ret = 0;
     for (int i = left; i <= right; i++)
         ret = max(ret, stage[i].size());
@@ -174,24 +164,25 @@ void ShootNormal(int col, int W) {
     char ch = stage[col].top();
     stage[col].pop();
 
+    // pop ending zeros
     while (!stage[col].empty() && stage[col].top() == '_')
         stage[col].pop();
     
     switch (ch) {
-        case '2': special.push(SG); break;
-        case '3': special.push(P); break;
-        case '4': special.push(SB); break;
+        case '2': specials.push(SG); break;
+        case '3': specials.push(P); break;
+        case '4': specials.push(SB); break;
         case '5': generateEnemies(col, W); break;
         default: break;
     }
 }
 
 void ShootSpecial(int col, int W) {
-    if (col < 0 || col >= W || special.empty())
+    if (col < 0 || col >= W || specials.empty())
         return;
         
-    string bullet = special.front();
-    special.pop();
+    string bullet = specials.front();
+    specials.pop();
     
     if (bullet == SG) {
         int left = (col - 2 >= 0) ? col - 2 : 0;
@@ -220,7 +211,8 @@ void FrontRow(int W) {
                 cout << stage[i].top();
             else
                 cout << '_';
-            if (i != W - 1) cout << ' ';
+            if (i != W - 1)
+                cout << ' ';
         }
         cout << '\n';
     }
@@ -244,7 +236,8 @@ void ShowResult(int W) {
                 char ch = !revStage[i].empty() ? revStage[i].top() : '_';
                 revStage[i].pop();
                 cout << ch;
-                if (i != W - 1) cout << ' ';
+                if (i != W - 1)
+                    cout << ' ';
             }
             cout << '\n';
         }
@@ -253,6 +246,4 @@ void ShowResult(int W) {
     }
 }
 
-void deleteStage() {
-    delete[] stage;
-}
+void deleteStage() { delete[] stage; }
