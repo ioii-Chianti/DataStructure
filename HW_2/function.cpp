@@ -1,6 +1,5 @@
 #include <iostream>
 #include "function.h"
-#define MODE 0
 using namespace std;
 
 const int Lhs = 0;
@@ -13,7 +12,6 @@ Node<T>::Node(T x, T y, T fence) : x(x), y(y), fence(fence), next(NULL) {}
 template <class T>
 T Node<T>::compare(T x, T y) {
     // compare this node and param node
-    // 0: this is bigger, 1: equals, 2: param is bigger
     if (this->x > x || this->x == x && this->y > y)
         return (T)Lhs;
     else if (this->x == x && this->y == y)
@@ -29,11 +27,11 @@ LinkedList<T>::LinkedList() : length(0) {
 template <class T>
 void LinkedList<T>::insert(T x, T y, T fence) {
     // empty
-    if (length == 0) {
-        first->next = new Node<T>(x, y, fence);
-        length++;
-        return;
-    }
+    // if (length == 0) {
+    //     first->next = new Node<T>(x, y, fence);
+    //     length++;
+    //     return;
+    // }
     // nonempty
     Node<T> *pre = first, *cur = first->next;
     while (cur != NULL) {
@@ -51,15 +49,10 @@ void LinkedList<T>::insert(T x, T y, T fence) {
     pre->next = newNode;
     newNode->next = (cur == NULL ? NULL : cur);
     length++;
-    
 }
 
 template <class T>
 void LinkedList<T>::deletion(T x, T y) {
-    // empty
-    if (length == 0)
-        return;
-    // nonempty
     Node<T> *pre = first, *cur = first->next;
     while (cur != NULL) {
         if (cur->compare(x, y) == (T)Equal) {
@@ -67,7 +60,7 @@ void LinkedList<T>::deletion(T x, T y) {
             if (cur->fence == 1)
                 return;
             // doesn't have fence, then delete node
-            pre->next = cur->next;
+            pre->next = (cur->next == NULL ? NULL : cur->next);
             length--;
             return;
         } else {
@@ -87,26 +80,23 @@ void LinkedList<T>::show() {
         cout << '(' << node->x << ',' << node->y << ")\n";
         node = node->next;
     }
-    if (MODE) cout << "--- end show\n";
 }
 
 LinkedList<long long> ls;
 
-void plant(long long x,long long y,int withFence) {
+void plant(long long x, long long y, int withFence) {
     ls.insert(x, y, withFence);
-    if (MODE) ls.show();
 }
 
-void thief(long long x,long long y) {
+void thief(long long x, long long y) {
     ls.deletion(x, y);
     ls.deletion(x - 1, y);
     ls.deletion(x + 1, y);
     ls.deletion(x, y - 1);
     ls.deletion(x, y + 1);
-    if (MODE) ls.show();
 }
 
-void superThief(long long x,long long y) {
+void superThief(long long x, long long y) {
     ls.deletion(x, y);
     ls.deletion(x - 1, y);
     ls.deletion(x + 1, y);
@@ -116,7 +106,6 @@ void superThief(long long x,long long y) {
     ls.deletion(x + 1, y + 1);
     ls.deletion(x + 1, y - 1);
     ls.deletion(x - 1, y + 1);
-    if (MODE) ls.show();
 }
 
 void display() { ls.show(); }
