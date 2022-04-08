@@ -2,9 +2,9 @@
 #include "function.h"
 using namespace std;
 
-const int Lhs = 0;
-const int Equal = 1;
-const int Rhs = 2;
+const long long Lhs = 0;
+const long long Equal = 1;
+const long long Rhs = 2;
 
 template <class T>
 Node<T>::Node(T x, T y, T fence) : x(x), y(y), fence(fence), next(NULL) {}
@@ -13,60 +13,52 @@ template <class T>
 T Node<T>::compare(T x, T y) {
     // compare this node and param node
     if (this->x > x || this->x == x && this->y > y)
-        return (T)Lhs;
+        return Lhs;
     else if (this->x == x && this->y == y)
-        return (T)Equal;
-    return (T)Rhs;
+        return Equal;
+    return Rhs;
 }
 
 template <class T>
 LinkedList<T>::LinkedList() : length(0) {
-    first = new Node<T>(__LONG_LONG_MAX__, __LONG_LONG_MAX__, 0);
+    first = new Node<T>(__LONG_LONG_MAX__, __LONG_LONG_MAX__, 1);
 }
 
 template <class T>
 void LinkedList<T>::insert(T x, T y, T fence) {
-    // empty
-    // if (length == 0) {
-    //     first->next = new Node<T>(x, y, fence);
-    //     length++;
-    //     return;
-    // }
-    // nonempty
     Node<T> *pre = first, *cur = first->next;
-    while (cur != NULL) {
-        if (cur->compare(x, y) == (T)Rhs) {
+    while (cur) {
+        if (cur->compare(x, y) == Rhs) {
             pre = pre->next;
             cur = cur->next;
-        } else if (cur->compare(x, y) == (T)Equal) {
+        } else if (cur->compare(x, y) == Equal) {
             if (cur->fence == 0 && fence == 1)
                 cur->fence = 1;
             return;
-        } else if (cur->compare(x, y) == (T)Lhs)
+        } else if (cur->compare(x, y) == Lhs)
             break;
     }
     Node<T> *newNode = new Node<T>(x, y, fence);
     pre->next = newNode;
-    newNode->next = (cur == NULL ? NULL : cur);
+    newNode->next = cur;
     length++;
 }
 
 template <class T>
 void LinkedList<T>::deletion(T x, T y) {
     Node<T> *pre = first, *cur = first->next;
-    while (cur != NULL) {
-        if (cur->compare(x, y) == (T)Equal) {
+    while (cur) {
+        if (cur->compare(x, y) == Equal) {
             // has fence
-            if (cur->fence == 1)
+            if (cur->fence == (T)1)
                 return;
             // doesn't have fence, then delete node
-            pre->next = (cur->next == NULL ? NULL : cur->next);
+            pre->next = cur->next;
             length--;
             return;
-        } else {
-            pre = pre->next;
-            cur = cur->next;
         }
+        pre = pre->next;
+        cur = cur->next;
     }
 }
 
@@ -76,7 +68,7 @@ void LinkedList<T>::show() {
     if (length == 0)
         return;
     Node<T> *node = first->next;
-    while (node != NULL) {
+    while (node) {
         cout << '(' << node->x << ',' << node->y << ")\n";
         node = node->next;
     }
