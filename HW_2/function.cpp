@@ -12,7 +12,7 @@ Node<T>::Node(T x, T y, T fence) : x(x), y(y), fence(fence), next(NULL) {}
 template <class T>
 T Node<T>::compare(T x, T y) {
     // compare this node and param node
-    if (this->x > x || this->x == x && this->y > y)
+    if (this->y > y || this->y == y && this->x > x)
         return Lhs;
     else if (this->x == x && this->y == y)
         return Equal;
